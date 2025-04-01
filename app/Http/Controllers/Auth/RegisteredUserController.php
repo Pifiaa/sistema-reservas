@@ -30,15 +30,29 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'nombres' => ['required', 'string', 'max:255'],
+            'apellidos' => ['required', 'string', 'max:255'],
+            'telefono' => ['required', 'string', 'max:15'],
+            'foto' => ['nullable', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $fotoPath = null;
+
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('fotos', 'public');
+        }
+
+
         $user = User::create([
-            'name' => $request->name,
+            'nombres' => $request->nombres,
+            'apellidos' => $request->apellidos,
+            'telefono' => $request->telefono,
+            'foto' => $fotoPath,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'rol_id' => 3,
         ]);
 
         event(new Registered($user));
